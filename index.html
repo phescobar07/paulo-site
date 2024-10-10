@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Blog - Jornal Digital de Tecnologias</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/azure-storage/2.10.0/azure-storage.blob.min.js"></script>
+    <title>Jornal Digital de Tecnologias - Sala de Aula</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -31,7 +30,6 @@
             background-color: white;
             margin: 20px;
             box-shadow: 0 0 10px rgba(0,0,0,0.1);
-            border-radius: 8px;
         }
         h1, h2, h3 {
             color: #333;
@@ -41,50 +39,29 @@
             color: white;
             text-align: center;
             padding: 10px;
-            position: relative;
-            bottom: 0;
+            position: fixed;
             width: 100%;
+            bottom: 0;
         }
         img {
-            max-width: 20%; /* Diminuindo ainda mais o tamanho das imagens */
+            max-width: 50%; /* Diminui as imagens para 50% do tamanho original */
             height: auto;
-            display: block;
-            margin: 0 auto;
-        }
-        .form-container {
-            background: #fff;
-            padding: 20px;
-            margin: 20px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-        }
-        input[type="text"], textarea, input[type="file"] {
-            width: 100%;
-            padding: 10px;
-            margin: 10px 0;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
-        input[type="submit"] {
-            background-color: #0073e6;
-            color: white;
-            padding: 10px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        input[type="submit"]:hover {
-            background-color: #005bb5;
         }
         .post {
             margin-bottom: 20px;
+        }
+        form {
+            margin: 20px;
+            padding: 10px;
+            background-color: #e6f7ff;
+            border-radius: 5px;
         }
     </style>
 </head>
 <body>
 
     <header>
-        <h1>Blog - Jornal Digital de Tecnologias</h1>
+        <h1>Jornal Digital de Tecnologias - Sala de Aula</h1>
         <p>Explorando as Tecnologias Aprendidas</p>
     </header>
 
@@ -126,42 +103,36 @@
         <img src="https://static-00.iconduck.com/assets.00/prometheus-icon-511x512-1vmxbcxr.png" alt="Monitoramento de Redes com Prometheus e Grafana">
     </article>
 
-    <!-- Formulário para adicionar novos posts -->
-    <div class="form-container">
-        <h2>Adicionar Novo Post</h2>
-        <form id="postForm">
-            <input type="text" id="title" placeholder="Título do Post" required>
-            <textarea id="content" rows="4" placeholder="Conteúdo do Post" required></textarea>
-            <input type="file" id="fileInput" required>
-            <input type="submit" value="Adicionar Post">
-        </form>
-    </div>
+    <h2>Adicionar Post</h2>
+    <form id="uploadForm">
+        <input type="text" id="title" placeholder="Título" required>
+        <textarea id="content" placeholder="Conteúdo" required></textarea>
+        <input type="file" id="fileInput" required>
+        <button type="submit">Adicionar Post</button>
+    </form>
 
-    <div id="posts"></div>
+    <div id="postsContainer"></div>
 
     <footer>
         <p>Jornal Digital de Tecnologias - 2024</p>
     </footer>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/@azure/storage-blob/12.10.0/azure-storage.blob.min.js"></script>
     <script>
-        const form = document.getElementById('postForm');
-        const postsContainer = document.getElementById('posts');
+        const blobServiceClient = new BlobServiceClient(
+            `https://blob160307.blob.core.windows.net/?sv=2022-11-02&ss=bfqt&srt=sco&sp=rwdlacupiytfx&se=2024-10-11T02:39:43Z&st=2024-10-10T18:39:43Z&spr=https&sig=tVRLpoELmBlZ2Clh7c0yjWpX7toMM6uBNMarIf%2Bx%2BiI%3D`
+        );
 
-        form.addEventListener('submit', async function(event) {
-            event.preventDefault();
-            
+        const containerName = "containersomasomasoma";  // Nome do seu contêiner
+        const form = document.getElementById('uploadForm');
+        const postsContainer = document.getElementById('postsContainer');
+
+        form.addEventListener('submit', async (event) => {
+            event.preventDefault(); // Previne o envio padrão do formulário
+
             const title = document.getElementById('title').value;
             const content = document.getElementById('content').value;
             const fileInput = document.getElementById('fileInput').files[0];
-
-            // Configurações do Azure Blob Storage
-            const accountName = 'SEU_NOME_DA_CONTA'; // Substitua pelo seu nome de conta
-            const sasToken = 'SEU_SAS_TOKEN'; // Substitua pelo seu SAS token
-            const containerName = 'NOME_DO_CONTÊINER'; // Substitua pelo seu nome de contêiner
-            
-            const blobServiceClient = new Azure.Storage.Blobs.BlobServiceClient(
-                `https://${accountName}.blob.core.windows.net/?${sasToken}`
-            );
 
             const containerClient = blobServiceClient.getContainerClient(containerName);
             const blobName = `${Date.now()}_${fileInput.name}`;
@@ -175,7 +146,7 @@
                 // Adiciona o post ao DOM
                 const postDiv = document.createElement('div');
                 postDiv.classList.add('post');
-                postDiv.innerHTML = `<h3>${title}</h3><p>${content}</p><img src="${fileUrl}" alt="${title}">`;
+                postDiv.innerHTML = `<h3>${title}</h3><p>${content}</p><img src="${fileUrl}" alt="${title}" style="max-width: 50%; height: auto;">`;
                 postsContainer.appendChild(postDiv);
 
                 // Limpa o formulário
