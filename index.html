@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jornal Digital de Tecnologias - Sala de Aula</title>
+    <title>Blog - Jornal Digital de Tecnologias</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -45,17 +45,45 @@
             width: 100%;
         }
         img {
-            max-width: 30%; /* Diminuindo ainda mais o tamanho das imagens */
+            max-width: 20%; /* Diminuindo ainda mais o tamanho das imagens */
             height: auto;
             display: block;
             margin: 0 auto;
+        }
+        .form-container {
+            background: #fff;
+            padding: 20px;
+            margin: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        input[type="text"], textarea {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        input[type="submit"] {
+            background-color: #0073e6;
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        input[type="submit"]:hover {
+            background-color: #005bb5;
+        }
+        .post {
+            margin-bottom: 20px;
         }
     </style>
 </head>
 <body>
 
     <header>
-        <h1>Jornal Digital de Tecnologias - Sala de Aula</h1>
+        <h1>Blog - Jornal Digital de Tecnologias</h1>
         <p>Explorando as Tecnologias Aprendidas</p>
     </header>
 
@@ -97,9 +125,43 @@
         <img src="https://static-00.iconduck.com/assets.00/prometheus-icon-511x512-1vmxbcxr.png" alt="Monitoramento de Redes com Prometheus e Grafana">
     </article>
 
+    <!-- Formulário para adicionar novos posts -->
+    <div class="form-container">
+        <h2>Adicionar Novo Post</h2>
+        <form id="postForm">
+            <input type="text" id="title" placeholder="Título do Post" required>
+            <textarea id="content" rows="4" placeholder="Conteúdo do Post" required></textarea>
+            <input type="submit" value="Adicionar Post">
+        </form>
+    </div>
+
+    <div id="posts"></div>
+
     <footer>
         <p>Jornal Digital de Tecnologias - 2024</p>
     </footer>
 
+    <script>
+        const form = document.getElementById('postForm');
+        const postsContainer = document.getElementById('posts');
+
+        form.addEventListener('submit', function(event) {
+            event.preventDefault();
+            
+            const title = document.getElementById('title').value;
+            const content = document.getElementById('content').value;
+
+            // Criar um novo elemento de post
+            const post = document.createElement('article');
+            post.className = 'post';
+            post.innerHTML = `<h2>${title}</h2><p>${content}</p>`;
+            
+            // Adicionar o novo post ao container
+            postsContainer.appendChild(post);
+
+            // Limpar o formulário
+            form.reset();
+        });
+    </script>
 </body>
 </html>
