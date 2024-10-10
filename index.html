@@ -44,7 +44,7 @@
             bottom: 0;
         }
         img {
-            max-width: 50%; /* Diminuindo as imagens */
+            max-width: 30%; /* Diminuindo as imagens */
             height: auto;
         }
         form {
@@ -56,6 +56,12 @@
         }
         button {
             margin-top: 10px;
+        }
+        .comment {
+            background-color: #e2e2e2;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
         }
     </style>
     <script src="https://unpkg.com/@azure/storage-blob@12.3.0/dist/azure-storage.blob.min.js"></script>
@@ -114,6 +120,16 @@
         </form>
     </article>
 
+    <!-- Seção para comentários -->
+    <article>
+        <h2>Comentários</h2>
+        <form id="comment-form">
+            <textarea id="comment-content" placeholder="Escreva seu comentário aqui..."></textarea>
+            <button type="button" onclick="uploadComment()">Enviar Comentário</button>
+        </form>
+        <div id="comments-section"></div>
+    </article>
+
     <footer>
         <p>Jornal Digital de Tecnologias - 2024</p>
     </footer>
@@ -145,6 +161,63 @@
                 alert("Erro ao enviar o post.");
             }
         }
+
+        async function uploadComment() {
+            const commentContent = document.getElementById("comment-content").value;
+            const blobServiceClient = new Azure.Storage.Blob.BlobServiceClient(
+                `https://${accountName}.blob.core.windows.net/?${sasToken}`
+            );
+            const containerClient = blobServiceClient.getContainerClient(containerName);
+            
+            // Criando um blob com o nome 'comment-<timestamp>.txt'
+            const blobName = `comment-${Date.now()}.txt`;
+            const blockBlobClient = containerClient.getBlockBlobClient(blobName);
+
+            try {
+                // Enviando o conteúdo do comentário para o blob
+                await blockBlobClient.upload(commentContent, Buffer.byteLength(commentContent));
+                alert("Comentário enviado com sucesso!");
+                document.getElementById("comment-content").value = ""; // Limpa o textarea
+                displayComments(); // Atualiza a seção de comentários
+            } catch (error) {
+                console.error("Erro ao enviar comentário:", error);
+                alert("Erro ao enviar o comentário.");
+            }
+        }
+
+        async function displayComments() {
+            const blobServiceClient = new Azure.Storage.Blob.BlobServiceClient(
+                `https://${accountName}.blob.core.windows.net/?${sasToken}`
+            );
+            const containerClient = blobServiceClient.getContainerClient(containerName);
+
+            // Recupera todos os blobs de comentários
+            let commentsHTML = "";
+            for await (const blob of containerClient.listBlobsFlat()) {
+                if (blob.name.startsWith("comment-")) {
+                    const downloadBlockBlobClient = containerClient.getBlockBlobClient(blob.name);
+                    const downloadBlobResponse = await downloadBlockBlobClient.download(0);
+                    const content = await streamToString(downloadBlobResponse.readableStreamBody);
+                    commentsHTML += `<div class="comment">${content}</div>`;
+                }
+            }
+            document.getElementById("comments-section").innerHTML = commentsHTML;
+        }
+
+        // Função auxiliar para converter um stream em string
+        async function streamToString(readableStream) {
+            const reader = readableStream.getReader();
+            const chunks = [];
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+                chunks.push(value);
+            }
+            return new TextDecoder("utf-8").decode(new Uint8Array(chunks));
+        }
+
+        // Exibir comentários ao carregar a página
+        displayComments();
     </script>
 </body>
 </html>
