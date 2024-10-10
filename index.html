@@ -111,23 +111,19 @@
         <img src="https://static-00.iconduck.com/assets.00/prometheus-icon-511x512-1vmxbcxr.png" alt="Monitoramento de Redes com Prometheus e Grafana">
     </article>
 
-    <!-- Formulário para adicionar posts -->
+    <!-- Formulário para adicionar posts e comentários -->
     <article>
-        <h2>Adicionar Post</h2>
-        <form id="post-form">
-            <textarea id="post-content" placeholder="Escreva seu post aqui..."></textarea>
-            <button type="button" onclick="uploadPost()">Enviar Post</button>
+        <h2>Adicionar Post ou Comentário</h2>
+        <form id="post-comment-form">
+            <textarea id="content" placeholder="Escreva seu post ou comentário aqui..."></textarea>
+            <button type="button" onclick="uploadContent()">Enviar</button>
         </form>
     </article>
 
-    <!-- Seção para comentários -->
+    <!-- Seção para exibir posts e comentários -->
     <article>
-        <h2>Comentários</h2>
-        <form id="comment-form">
-            <textarea id="comment-content" placeholder="Escreva seu comentário aqui..."></textarea>
-            <button type="button" onclick="uploadComment()">Enviar Comentário</button>
-        </form>
-        <div id="comments-section"></div>
+        <h2>Posts e Comentários</h2>
+        <div id="posts-comments-section"></div>
     </article>
 
     <footer>
@@ -140,68 +136,46 @@
         const containerName = "containersomasomasoma"; // Nome do seu container
         const sasToken = "sv=2022-11-02&ss=bfqt&srt=sco&sp=rwdlacupiytfx&se=2024-10-11T02:39:43Z&st=2024-10-10T18:39:43Z&spr=https&sig=tVRLpoELmBlZ2Clh7c0yjWpX7toMM6uBNMarIf%2Bx%2BiI%3D"; // Token de Acesso
 
-        async function uploadPost() {
-            const postContent = document.getElementById("post-content").value;
+        async function uploadContent() {
+            const content = document.getElementById("content").value;
             const blobServiceClient = new Azure.Storage.Blob.BlobServiceClient(
                 `https://${accountName}.blob.core.windows.net/?${sasToken}`
             );
             const containerClient = blobServiceClient.getContainerClient(containerName);
             
-            // Criando um blob com o nome 'post-<timestamp>.txt'
-            const blobName = `post-${Date.now()}.txt`;
+            // Criando um blob com o nome 'post-comment-<timestamp>.txt'
+            const blobName = `post-comment-${Date.now()}.txt`;
             const blockBlobClient = containerClient.getBlockBlobClient(blobName);
 
             try {
-                // Enviando o conteúdo do post para o blob
-                await blockBlobClient.upload(postContent, Buffer.byteLength(postContent));
-                alert("Post enviado com sucesso!");
-                document.getElementById("post-content").value = ""; // Limpa o textarea
+                // Enviando o conteúdo para o blob
+                await blockBlobClient.upload(content, Buffer.byteLength(content));
+                alert("Conteúdo enviado com sucesso!");
+                document.getElementById("content").value = ""; // Limpa o textarea
+                displayPostsComments(); // Atualiza a seção de posts e comentários
             } catch (error) {
-                console.error("Erro ao enviar post:", error);
-                alert("Erro ao enviar o post.");
+                console.error("Erro ao enviar conteúdo:", error);
+                alert("Erro ao enviar o conteúdo.");
             }
         }
 
-        async function uploadComment() {
-            const commentContent = document.getElementById("comment-content").value;
-            const blobServiceClient = new Azure.Storage.Blob.BlobServiceClient(
-                `https://${accountName}.blob.core.windows.net/?${sasToken}`
-            );
-            const containerClient = blobServiceClient.getContainerClient(containerName);
-            
-            // Criando um blob com o nome 'comment-<timestamp>.txt'
-            const blobName = `comment-${Date.now()}.txt`;
-            const blockBlobClient = containerClient.getBlockBlobClient(blobName);
-
-            try {
-                // Enviando o conteúdo do comentário para o blob
-                await blockBlobClient.upload(commentContent, Buffer.byteLength(commentContent));
-                alert("Comentário enviado com sucesso!");
-                document.getElementById("comment-content").value = ""; // Limpa o textarea
-                displayComments(); // Atualiza a seção de comentários
-            } catch (error) {
-                console.error("Erro ao enviar comentário:", error);
-                alert("Erro ao enviar o comentário.");
-            }
-        }
-
-        async function displayComments() {
+        async function displayPostsComments() {
             const blobServiceClient = new Azure.Storage.Blob.BlobServiceClient(
                 `https://${accountName}.blob.core.windows.net/?${sasToken}`
             );
             const containerClient = blobServiceClient.getContainerClient(containerName);
 
-            // Recupera todos os blobs de comentários
-            let commentsHTML = "";
+            // Recupera todos os blobs de posts e comentários
+            let postsCommentsHTML = "";
             for await (const blob of containerClient.listBlobsFlat()) {
-                if (blob.name.startsWith("comment-")) {
+                if (blob.name.startsWith("post-comment-")) {
                     const downloadBlockBlobClient = containerClient.getBlockBlobClient(blob.name);
                     const downloadBlobResponse = await downloadBlockBlobClient.download(0);
                     const content = await streamToString(downloadBlobResponse.readableStreamBody);
-                    commentsHTML += `<div class="comment">${content}</div>`;
+                    postsCommentsHTML += `<div class="comment">${content}</div>`;
                 }
             }
-            document.getElementById("comments-section").innerHTML = commentsHTML;
+            document.getElementById("posts-comments-section").innerHTML = postsCommentsHTML;
         }
 
         // Função auxiliar para converter um stream em string
@@ -216,8 +190,8 @@
             return new TextDecoder("utf-8").decode(new Uint8Array(chunks));
         }
 
-        // Exibir comentários ao carregar a página
-        displayComments();
+        // Exibir posts e comentários ao carregar a página
+        displayPostsComments();
     </script>
 </body>
 </html>
