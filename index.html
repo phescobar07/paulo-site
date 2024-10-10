@@ -10,9 +10,6 @@
             background-color: #f4f4f4;
             margin: 0;
             padding: 0;
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh; /* Para garantir que o footer fique no final da página */
         }
         header {
             background-color: #0073e6;
@@ -22,10 +19,9 @@
         }
         nav {
             margin: 20px;
-            text-align: center;
         }
         nav a {
-            margin: 0 15px;
+            margin-right: 15px;
             color: #0073e6;
             text-decoration: none;
         }
@@ -43,44 +39,26 @@
             color: white;
             text-align: center;
             padding: 10px;
-            margin-top: auto; /* Faz o footer ficar no final da página */
+            position: fixed;
+            width: 100%;
+            bottom: 0;
         }
         img {
-            max-width: 10%; /* Imagens em 10% do tamanho original */
+            max-width: 50%; /* Diminuindo as imagens */
             height: auto;
-        }
-        .post {
-            margin-bottom: 20px;
         }
         form {
             margin: 20px;
-            padding: 10px;
-            background-color: #e6f7ff;
-            border-radius: 5px;
         }
         textarea {
             width: 100%;
-            height: 100px; /* Aumenta a altura do textarea */
-            margin-bottom: 10px;
-            padding: 10px;
-        }
-        input[type="text"], input[type="file"] {
-            width: 100%;
-            padding: 10px;
-            margin-bottom: 10px;
+            height: 100px;
         }
         button {
-            background-color: #0073e6;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            cursor: pointer;
-            border-radius: 5px;
-        }
-        button:hover {
-            background-color: #005bb5; /* Muda a cor do botão ao passar o mouse */
+            margin-top: 10px;
         }
     </style>
+    <script src="https://unpkg.com/@azure/storage-blob@12.3.0/dist/azure-storage.blob.min.js"></script>
 </head>
 <body>
 
@@ -127,123 +105,46 @@
         <img src="https://static-00.iconduck.com/assets.00/prometheus-icon-511x512-1vmxbcxr.png" alt="Monitoramento de Redes com Prometheus e Grafana">
     </article>
 
-    <h2>Adicionar Post</h2>
-    <form id="uploadForm">
-        <input type="text" id="title" placeholder="Título" required>
-        <textarea id="content" placeholder="Conteúdo" required></textarea>
-        <input type="file" id="fileInput"> <!-- Agora o arquivo não é obrigatório -->
-        <button type="submit">Adicionar Post</button>
-    </form>
-
-    <div id="postsContainer"></div>
+    <!-- Formulário para adicionar posts -->
+    <article>
+        <h2>Adicionar Post</h2>
+        <form id="post-form">
+            <textarea id="post-content" placeholder="Escreva seu post aqui..."></textarea>
+            <button type="button" onclick="uploadPost()">Enviar Post</button>
+        </form>
+    </article>
 
     <footer>
         <p>Jornal Digital de Tecnologias - 2024</p>
     </footer>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/@azure/storage-blob/12.10.0/azure-storage.blob.min.js"></script>
     <script>
-        const blobServiceClient = new BlobServiceClient(
-            `https://blob160307.blob.core.windows.net/?sv=2022-11-02&ss=bfqt&srt=sco&sp=rwdlacupiytfx&se=2024-10-11T02:39:43Z&st=2024-10-10T18:39:43Z&spr=https&sig=tVRLpoELmBlZ2Clh7c0yjWpX7toMM6uBNMarIf%2Bx%2BiI%3D`
-        );
+        // Chave de Acesso e Nome da Conta
+        const accountName = "blob160307"; // Nome da sua conta de armazenamento
+        const containerName = "containersomasomasoma"; // Nome do seu container
+        const sasToken = "sv=2022-11-02&ss=bfqt&srt=sco&sp=rwdlacupiytfx&se=2024-10-11T02:39:43Z&st=2024-10-10T18:39:43Z&spr=https&sig=tVRLpoELmBlZ2Clh7c0yjWpX7toMM6uBNMarIf%2Bx%2BiI%3D"; // Token de Acesso
 
-        const containerName = "containersomasomasoma";  // Nome do seu contêiner
-        const form = document.getElementById('uploadForm');
-        const postsContainer = document.getElementById('postsContainer');
-
-        // Função para carregar posts existentes do Azure Blob Storage
-        async function loadPosts() {
+        async function uploadPost() {
+            const postContent = document.getElementById("post-content").value;
+            const blobServiceClient = new Azure.Storage.Blob.BlobServiceClient(
+                `https://${accountName}.blob.core.windows.net/?${sasToken}`
+            );
             const containerClient = blobServiceClient.getContainerClient(containerName);
-            const blobName = 'posts.json'; // Nome do arquivo onde os posts serão armazenados
             
-            try {
-                const blobClient = containerClient.getBlobClient(blobName);
-                const downloadBlockBlobResponse = await blobClient.download(0);
-                const downloadedData = await streamToString(downloadBlockBlobResponse.readableStreamBody);
-                
-                const posts = JSON.parse(downloadedData);
-                posts.forEach(post => {
-                    displayPost(post);
-                });
-            } catch (error) {
-                console.error("Erro ao carregar posts:", error);
-            }
-        }
-
-        // Função para exibir um post na página
-        function displayPost(post) {
-            const postDiv = document.createElement('div');
-            postDiv.classList.add('post');
-            postDiv.innerHTML = `
-                <h3>${post.title}</h3>
-                <p>${post.content}</p>
-                ${post.imageUrl ? `<img src="${post.imageUrl}" alt="${post.title}">` : ''}
-            `;
-            postsContainer.appendChild(postDiv);
-        }
-
-        // Função para converter um stream em string
-        async function streamToString(readableStream) {
-            const reader = readableStream.getReader();
-            const decoder = new TextDecoder("utf-8");
-            let result = '';
-            const read = async () => {
-                const { done, value } = await reader.read();
-                if (done) {
-                    return result;
-                }
-                result += decoder.decode(value, { stream: true });
-                return read();
-            };
-            await read();
-            return result;
-        }
-
-        form.addEventListener('submit', async (event) => {
-            event.preventDefault();
-
-            const title = document.getElementById('title').value;
-            const content = document.getElementById('content').value;
-            const fileInput = document.getElementById('fileInput');
-            let imageUrl = '';
-
-            if (fileInput.files.length > 0) {
-                const file = fileInput.files[0];
-                const blobClient = blobServiceClient.getContainerClient(containerName).getBlockBlobClient(file.name);
-                await blobClient.uploadBrowserFile(file);
-                imageUrl = `https://${blobClient.containerName}.blob.core.windows.net/${blobClient.name}`;
-            }
-
-            // Adiciona o post ao arquivo JSON no Azure Blob Storage
-            const post = { title, content, imageUrl };
-            await savePost(post);
-            displayPost(post);
-            form.reset();
-        });
-
-        // Função para salvar posts em um arquivo JSON no Blob Storage
-        async function savePost(post) {
-            const containerClient = blobServiceClient.getContainerClient(containerName);
-            const blobName = 'posts.json'; // Nome do arquivo onde os posts serão armazenados
-            let posts = [];
-
-            try {
-                const blobClient = containerClient.getBlobClient(blobName);
-                const downloadBlockBlobResponse = await blobClient.download(0);
-                const downloadedData = await streamToString(downloadBlockBlobResponse.readableStreamBody);
-                posts = JSON.parse(downloadedData);
-            } catch (error) {
-                console.log("Arquivo não encontrado ou erro ao carregar posts:", error);
-            }
-
-            posts.push(post); // Adiciona o novo post
-            const content = JSON.stringify(posts);
+            // Criando um blob com o nome 'post-<timestamp>.txt'
+            const blobName = `post-${Date.now()}.txt`;
             const blockBlobClient = containerClient.getBlockBlobClient(blobName);
-            await blockBlobClient.upload(content, content.length);
-        }
 
-        // Carrega os posts quando a página é carregada
-        loadPosts();
+            try {
+                // Enviando o conteúdo do post para o blob
+                await blockBlobClient.upload(postContent, Buffer.byteLength(postContent));
+                alert("Post enviado com sucesso!");
+                document.getElementById("post-content").value = ""; // Limpa o textarea
+            } catch (error) {
+                console.error("Erro ao enviar post:", error);
+                alert("Erro ao enviar o post.");
+            }
+        }
     </script>
 </body>
 </html>
