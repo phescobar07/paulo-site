@@ -10,6 +10,9 @@
             background-color: #f4f4f4;
             margin: 0;
             padding: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh; /* Garante que o footer fique no final da página */
         }
         header {
             background-color: #0073e6;
@@ -30,6 +33,7 @@
             background-color: white;
             margin: 20px;
             box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            flex: 1; /* Faz o artigo ocupar o espaço disponível */
         }
         h1, h2, h3 {
             color: #333;
@@ -39,9 +43,6 @@
             color: white;
             text-align: center;
             padding: 10px;
-            position: fixed;
-            width: 100%;
-            bottom: 0;
         }
         img {
             max-width: 30%; /* Diminuindo as imagens */
@@ -138,6 +139,11 @@
 
         async function uploadContent() {
             const content = document.getElementById("content").value;
+            if (!content) {
+                alert("Por favor, insira um conteúdo para enviar.");
+                return;
+            }
+
             const blobServiceClient = new Azure.Storage.Blob.BlobServiceClient(
                 `https://${accountName}.blob.core.windows.net/?${sasToken}`
             );
@@ -165,29 +171,23 @@
             );
             const containerClient = blobServiceClient.getContainerClient(containerName);
 
-            // Recupera todos os blobs de posts e comentários
-            let postsCommentsHTML = "";
-            for await (const blob of containerClient.listBlobsFlat()) {
-                if (blob.name.startsWith("post-comment-")) {
-                    const downloadBlockBlobClient = containerClient.getBlockBlobClient(blob.name);
-                    const downloadBlobResponse = await downloadBlockBlobClient.download(0);
-                    const content = await streamToString(downloadBlobResponse.readableStreamBody);
-                    postsCommentsHTML += `<div class="comment">${content}</div>`;
-                }
-            }
-            document.getElementById("posts-comments-section").innerHTML = postsCommentsHTML;
-        }
+            // Listar blobs no container
+            const blobs = containerClient.listBlobsFlat();
+            const postsCommentsSection = document.getElementById("posts-comments-section");
+            postsCommentsSection.innerHTML = ""; // Limpa a seção antes de adicionar novos
 
-        // Função auxiliar para converter um stream em string
-        async function streamToString(readableStream) {
-            const reader = readableStream.getReader();
-            const chunks = [];
-            while (true) {
-                const { done, value } = await reader.read();
-                if (done) break;
-                chunks.push(value);
+            for await (const blob of blobs) {
+                const blobClient = containerClient.getBlobClient(blob.name);
+                const downloadUrl = blobClient.url;
+
+                const response = await fetch(downloadUrl);
+                const content = await response.text();
+
+                const postCommentDiv = document.createElement("div");
+                postCommentDiv.className = "comment";
+                postCommentDiv.innerHTML = `<strong>${blob.name}</strong>:<br>${content}`;
+                postsCommentsSection.appendChild(postCommentDiv);
             }
-            return new TextDecoder("utf-8").decode(new Uint8Array(chunks));
         }
 
         // Exibir posts e comentários ao carregar a página
