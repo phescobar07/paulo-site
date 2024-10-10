@@ -46,7 +46,7 @@
             margin-top: auto; /* Faz o footer ficar no final da página */
         }
         img {
-            max-width: 100%; /* Assegura que as imagens não ultrapassem o tamanho do contêiner */
+            max-width: 10%; /* Imagens em 10% do tamanho original */
             height: auto;
         }
         .post {
@@ -131,7 +131,7 @@
     <form id="uploadForm">
         <input type="text" id="title" placeholder="Título" required>
         <textarea id="content" placeholder="Conteúdo" required></textarea>
-        <input type="file" id="fileInput" required>
+        <input type="file" id="fileInput"> <!-- Agora o arquivo não é obrigatório -->
         <button type="submit">Adicionar Post</button>
     </form>
 
@@ -159,25 +159,29 @@
             const fileInput = document.getElementById('fileInput').files[0];
 
             const containerClient = blobServiceClient.getContainerClient(containerName);
-            const blobName = `${Date.now()}_${fileInput.name}`;
-            const blockBlobClient = containerClient.getBlockBlobClient(blobName);
+            let fileUrl = '';
 
-            try {
-                // Faz upload do arquivo para o Azure Blob Storage
-                await blockBlobClient.uploadBrowserFile(fileInput);
-                const fileUrl = blockBlobClient.url;
+            if (fileInput) {
+                const blobName = `${Date.now()}_${fileInput.name}`;
+                const blockBlobClient = containerClient.getBlockBlobClient(blobName);
 
-                // Adiciona o post ao DOM
-                const postDiv = document.createElement('div');
-                postDiv.classList.add('post');
-                postDiv.innerHTML = `<h3>${title}</h3><p>${content}</p><img src="${fileUrl}" alt="${title}" style="max-width: 50%; height: auto;">`;
-                postsContainer.appendChild(postDiv);
-
-                // Limpa o formulário
-                form.reset();
-            } catch (error) {
-                console.error('Erro ao fazer upload do arquivo:', error);
+                try {
+                    // Faz upload do arquivo para o Azure Blob Storage
+                    await blockBlobClient.uploadBrowserFile(fileInput);
+                    fileUrl = blockBlobClient.url; // Armazena o URL do arquivo
+                } catch (error) {
+                    console.error('Erro ao fazer upload do arquivo:', error);
+                }
             }
+
+            // Adiciona o post ao DOM
+            const postDiv = document.createElement('div');
+            postDiv.classList.add('post');
+            postDiv.innerHTML = `<h3>${title}</h3><p>${content}</p>${fileUrl ? `<img src="${fileUrl}" alt="${title}" style="max-width: 10%; height: auto;">` : ''}`;
+            postsContainer.appendChild(postDiv);
+
+            // Limpa o formulário
+            form.reset();
         });
     </script>
 
