@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jornal Digital de Tecnologias - Sala de Aula</title>
+    <title>Blog do Melhor do Mundo - Vinicius Junior</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -12,7 +12,7 @@
             padding: 0;
         }
         header {
-            background-color: #0073e6;
+            background-color: #ff5722;
             color: white;
             padding: 20px;
             text-align: center;
@@ -22,11 +22,11 @@
         }
         nav a {
             margin-right: 15px;
-            color: #0073e6;
+            color: #ff5722;
             text-decoration: none;
         }
         article {
-            padding: 20px;
+            padding: 15px;
             background-color: white;
             margin: 20px;
             box-shadow: 0 0 10px rgba(0,0,0,0.1);
@@ -44,15 +44,28 @@
             bottom: 0;
         }
         img {
-            max-width: 80%; /* Reduzindo o tamanho das imagens para 80% */
+            max-width: 50%;
             height: auto;
-            display: block;
-            margin: 0 auto; /* Centralizando as imagens */
         }
-        .blog-post {
-            margin: 20px 0;
-            padding: 15px;
-            background-color: #e9ecef;
+        .post-form {
+            margin: 20px;
+            padding: 20px;
+            background-color: #ffffff;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .post-title, .post-content {
+            width: 100%;
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .submit-button {
+            background-color: #ff5722;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            cursor: pointer;
             border-radius: 5px;
         }
     </style>
@@ -60,7 +73,7 @@
 <body>
 
     <header>
-        <h1>Jornal Digital de Tecnologias - Sala de Aula</h1>
+        <h1>Blog do Melhor do Mundo - Vinicius Junior</h1>
         <p>Explorando as Tecnologias Aprendidas</p>
     </header>
 
@@ -70,7 +83,6 @@
         <a href="#servidor-app">Servidor de Aplicações</a>
         <a href="#banco-de-dados">Banco de Dados</a>
         <a href="#tcc">TCC - Monitoramento de Redes</a>
-        <a href="#blog">Blog do Vinicius Junior</a> <!-- Link para o blog -->
     </nav>
 
     <article id="maquinas-virtuais">
@@ -103,21 +115,37 @@
         <img src="https://static-00.iconduck.com/assets.00/prometheus-icon-511x512-1vmxbcxr.png" alt="Monitoramento de Redes com Prometheus e Grafana">
     </article>
 
-    <article id="blog">
-        <h2>Blog do Vinicius Junior</h2>
-        <div class="blog-post">
-            <h3>Postagem 1: A Revolução das Máquinas Virtuais</h3>
-            <p>As máquinas virtuais mudaram a forma como gerenciamos servidores e aplicações. Neste post, vou discutir como as VMs permitem que pequenas empresas escalem seus serviços de forma acessível.</p>
-        </div>
-        <div class="blog-post">
-            <h3>Postagem 2: Redes Virtuais - O Futuro da Conectividade</h3>
-            <p>As redes virtuais estão se tornando cada vez mais essenciais para a segurança e eficiência dos dados. Aqui, vou compartilhar insights sobre como implementar redes virtuais na Azure.</p>
-        </div>
-    </article>
+    <!-- Formulário para adicionar novos posts -->
+    <div class="post-form">
+        <h2>Adicionar um Novo Post</h2>
+        <input type="text" class="post-title" id="postTitle" placeholder="Título do Post" required>
+        <textarea class="post-content" id="postContent" placeholder="Conteúdo do Post" required></textarea>
+        <button class="submit-button" onclick="addPost()">Adicionar Post</button>
+    </div>
+
+    <div id="postsContainer"></div>
 
     <footer>
-        <p>Jornal Digital de Tecnologias - 2024</p>
+        <p>Blog do Melhor do Mundo - 2024</p>
     </footer>
+
+    <script>
+        function addPost() {
+            const title = document.getElementById('postTitle').value;
+            const content = document.getElementById('postContent').value;
+
+            if (title && content) {
+                const postContainer = document.getElementById('postsContainer');
+                const newPost = document.createElement('article');
+                newPost.innerHTML = `<h2>${title}</h2><p>${content}</p>`;
+                postContainer.prepend(newPost); // Adiciona o novo post no topo
+                document.getElementById('postTitle').value = ''; // Limpa o título
+                document.getElementById('postContent').value = ''; // Limpa o conteúdo
+            } else {
+                alert('Por favor, preencha todos os campos.');
+            }
+        }
+    </script>
 
 </body>
 </html>
