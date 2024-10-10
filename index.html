@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Blog do Melhor do Mundo - Vinicius Junior</title>
+    <title>Jornal Digital de Tecnologias - Sala de Aula</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -12,7 +12,7 @@
             padding: 0;
         }
         header {
-            background-color: #ff5722;
+            background-color: #0073e6;
             color: white;
             padding: 20px;
             text-align: center;
@@ -22,14 +22,15 @@
         }
         nav a {
             margin-right: 15px;
-            color: #ff5722;
+            color: #0073e6;
             text-decoration: none;
         }
         article {
-            padding: 15px;
+            padding: 20px;
             background-color: white;
             margin: 20px;
             box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            border-radius: 8px;
         }
         h1, h2, h3 {
             color: #333;
@@ -39,41 +40,22 @@
             color: white;
             text-align: center;
             padding: 10px;
-            position: fixed;
-            width: 100%;
+            position: relative;
             bottom: 0;
+            width: 100%;
         }
         img {
-            max-width: 50%;
+            max-width: 30%; /* Diminuindo ainda mais o tamanho das imagens */
             height: auto;
-        }
-        .post-form {
-            margin: 20px;
-            padding: 20px;
-            background-color: #ffffff;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-        }
-        .post-title, .post-content {
-            width: 100%;
-            margin: 10px 0;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-        }
-        .submit-button {
-            background-color: #ff5722;
-            color: white;
-            border: none;
-            padding: 10px 15px;
-            cursor: pointer;
-            border-radius: 5px;
+            display: block;
+            margin: 0 auto;
         }
     </style>
 </head>
 <body>
 
     <header>
-        <h1>Blog do Melhor do Mundo - Vinicius Junior</h1>
+        <h1>Jornal Digital de Tecnologias - Sala de Aula</h1>
         <p>Explorando as Tecnologias Aprendidas</p>
     </header>
 
@@ -115,37 +97,9 @@
         <img src="https://static-00.iconduck.com/assets.00/prometheus-icon-511x512-1vmxbcxr.png" alt="Monitoramento de Redes com Prometheus e Grafana">
     </article>
 
-    <!-- Formulário para adicionar novos posts -->
-    <div class="post-form">
-        <h2>Adicionar um Novo Post</h2>
-        <input type="text" class="post-title" id="postTitle" placeholder="Título do Post" required>
-        <textarea class="post-content" id="postContent" placeholder="Conteúdo do Post" required></textarea>
-        <button class="submit-button" onclick="addPost()">Adicionar Post</button>
-    </div>
-
-    <div id="postsContainer"></div>
-
     <footer>
-        <p>Blog do Melhor do Mundo - 2024</p>
+        <p>Jornal Digital de Tecnologias - 2024</p>
     </footer>
-
-    <script>
-        function addPost() {
-            const title = document.getElementById('postTitle').value;
-            const content = document.getElementById('postContent').value;
-
-            if (title && content) {
-                const postContainer = document.getElementById('postsContainer');
-                const newPost = document.createElement('article');
-                newPost.innerHTML = `<h2>${title}</h2><p>${content}</p>`;
-                postContainer.prepend(newPost); // Adiciona o novo post no topo
-                document.getElementById('postTitle').value = ''; // Limpa o título
-                document.getElementById('postContent').value = ''; // Limpa o conteúdo
-            } else {
-                alert('Por favor, preencha todos os campos.');
-            }
-        }
-    </script>
 
 </body>
 </html>
