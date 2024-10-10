@@ -151,39 +151,99 @@
         const form = document.getElementById('uploadForm');
         const postsContainer = document.getElementById('postsContainer');
 
+        // Função para carregar posts existentes do Azure Blob Storage
+        async function loadPosts() {
+            const containerClient = blobServiceClient.getContainerClient(containerName);
+            const blobName = 'posts.json'; // Nome do arquivo onde os posts serão armazenados
+            
+            try {
+                const blobClient = containerClient.getBlobClient(blobName);
+                const downloadBlockBlobResponse = await blobClient.download(0);
+                const downloadedData = await streamToString(downloadBlockBlobResponse.readableStreamBody);
+                
+                const posts = JSON.parse(downloadedData);
+                posts.forEach(post => {
+                    displayPost(post);
+                });
+            } catch (error) {
+                console.error("Erro ao carregar posts:", error);
+            }
+        }
+
+        // Função para exibir um post na página
+        function displayPost(post) {
+            const postDiv = document.createElement('div');
+            postDiv.classList.add('post');
+            postDiv.innerHTML = `
+                <h3>${post.title}</h3>
+                <p>${post.content}</p>
+                ${post.imageUrl ? `<img src="${post.imageUrl}" alt="${post.title}">` : ''}
+            `;
+            postsContainer.appendChild(postDiv);
+        }
+
+        // Função para converter um stream em string
+        async function streamToString(readableStream) {
+            const reader = readableStream.getReader();
+            const decoder = new TextDecoder("utf-8");
+            let result = '';
+            const read = async () => {
+                const { done, value } = await reader.read();
+                if (done) {
+                    return result;
+                }
+                result += decoder.decode(value, { stream: true });
+                return read();
+            };
+            await read();
+            return result;
+        }
+
         form.addEventListener('submit', async (event) => {
-            event.preventDefault(); // Previne o envio padrão do formulário
+            event.preventDefault();
 
             const title = document.getElementById('title').value;
             const content = document.getElementById('content').value;
-            const fileInput = document.getElementById('fileInput').files[0];
+            const fileInput = document.getElementById('fileInput');
+            let imageUrl = '';
 
-            const containerClient = blobServiceClient.getContainerClient(containerName);
-            let fileUrl = '';
-
-            if (fileInput) {
-                const blobName = `${Date.now()}_${fileInput.name}`;
-                const blockBlobClient = containerClient.getBlockBlobClient(blobName);
-
-                try {
-                    // Faz upload do arquivo para o Azure Blob Storage
-                    await blockBlobClient.uploadBrowserFile(fileInput);
-                    fileUrl = blockBlobClient.url; // Armazena o URL do arquivo
-                } catch (error) {
-                    console.error('Erro ao fazer upload do arquivo:', error);
-                }
+            if (fileInput.files.length > 0) {
+                const file = fileInput.files[0];
+                const blobClient = blobServiceClient.getContainerClient(containerName).getBlockBlobClient(file.name);
+                await blobClient.uploadBrowserFile(file);
+                imageUrl = `https://${blobClient.containerName}.blob.core.windows.net/${blobClient.name}`;
             }
 
-            // Adiciona o post ao DOM
-            const postDiv = document.createElement('div');
-            postDiv.classList.add('post');
-            postDiv.innerHTML = `<h3>${title}</h3><p>${content}</p>${fileUrl ? `<img src="${fileUrl}" alt="${title}" style="max-width: 10%; height: auto;">` : ''}`;
-            postsContainer.appendChild(postDiv);
-
-            // Limpa o formulário
+            // Adiciona o post ao arquivo JSON no Azure Blob Storage
+            const post = { title, content, imageUrl };
+            await savePost(post);
+            displayPost(post);
             form.reset();
         });
-    </script>
 
+        // Função para salvar posts em um arquivo JSON no Blob Storage
+        async function savePost(post) {
+            const containerClient = blobServiceClient.getContainerClient(containerName);
+            const blobName = 'posts.json'; // Nome do arquivo onde os posts serão armazenados
+            let posts = [];
+
+            try {
+                const blobClient = containerClient.getBlobClient(blobName);
+                const downloadBlockBlobResponse = await blobClient.download(0);
+                const downloadedData = await streamToString(downloadBlockBlobResponse.readableStreamBody);
+                posts = JSON.parse(downloadedData);
+            } catch (error) {
+                console.log("Arquivo não encontrado ou erro ao carregar posts:", error);
+            }
+
+            posts.push(post); // Adiciona o novo post
+            const content = JSON.stringify(posts);
+            const blockBlobClient = containerClient.getBlockBlobClient(blobName);
+            await blockBlobClient.upload(content, content.length);
+        }
+
+        // Carrega os posts quando a página é carregada
+        loadPosts();
+    </script>
 </body>
 </html>
