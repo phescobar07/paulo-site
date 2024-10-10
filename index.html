@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Blog - Jornal Digital de Tecnologias</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/azure-storage/2.10.0/azure-storage.blob.min.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -57,7 +58,7 @@
             border-radius: 8px;
             box-shadow: 0 0 10px rgba(0,0,0,0.1);
         }
-        input[type="text"], textarea {
+        input[type="text"], textarea, input[type="file"] {
             width: 100%;
             padding: 10px;
             margin: 10px 0;
@@ -131,6 +132,7 @@
         <form id="postForm">
             <input type="text" id="title" placeholder="Título do Post" required>
             <textarea id="content" rows="4" placeholder="Conteúdo do Post" required></textarea>
+            <input type="file" id="fileInput" required>
             <input type="submit" value="Adicionar Post">
         </form>
     </div>
@@ -145,23 +147,44 @@
         const form = document.getElementById('postForm');
         const postsContainer = document.getElementById('posts');
 
-        form.addEventListener('submit', function(event) {
+        form.addEventListener('submit', async function(event) {
             event.preventDefault();
             
             const title = document.getElementById('title').value;
             const content = document.getElementById('content').value;
+            const fileInput = document.getElementById('fileInput').files[0];
 
-            // Criar um novo elemento de post
-            const post = document.createElement('article');
-            post.className = 'post';
-            post.innerHTML = `<h2>${title}</h2><p>${content}</p>`;
+            // Configurações do Azure Blob Storage
+            const accountName = 'SEU_NOME_DA_CONTA'; // Substitua pelo seu nome de conta
+            const sasToken = 'SEU_SAS_TOKEN'; // Substitua pelo seu SAS token
+            const containerName = 'NOME_DO_CONTÊINER'; // Substitua pelo seu nome de contêiner
             
-            // Adicionar o novo post ao container
-            postsContainer.appendChild(post);
+            const blobServiceClient = new Azure.Storage.Blobs.BlobServiceClient(
+                `https://${accountName}.blob.core.windows.net/?${sasToken}`
+            );
 
-            // Limpar o formulário
-            form.reset();
+            const containerClient = blobServiceClient.getContainerClient(containerName);
+            const blobName = `${Date.now()}_${fileInput.name}`;
+            const blockBlobClient = containerClient.getBlockBlobClient(blobName);
+
+            try {
+                // Faz upload do arquivo para o Azure Blob Storage
+                await blockBlobClient.uploadBrowserFile(fileInput);
+                const fileUrl = blockBlobClient.url;
+
+                // Adiciona o post ao DOM
+                const postDiv = document.createElement('div');
+                postDiv.classList.add('post');
+                postDiv.innerHTML = `<h3>${title}</h3><p>${content}</p><img src="${fileUrl}" alt="${title}">`;
+                postsContainer.appendChild(postDiv);
+
+                // Limpa o formulário
+                form.reset();
+            } catch (error) {
+                console.error('Erro ao fazer upload do arquivo:', error);
+            }
         });
     </script>
+
 </body>
 </html>
