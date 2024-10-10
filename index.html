@@ -44,8 +44,16 @@
             bottom: 0;
         }
         img {
-            max-width: 100%;
+            max-width: 80%; /* Reduzindo o tamanho das imagens para 80% */
             height: auto;
+            display: block;
+            margin: 0 auto; /* Centralizando as imagens */
+        }
+        .blog-post {
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #e9ecef;
+            border-radius: 5px;
         }
     </style>
 </head>
@@ -62,6 +70,7 @@
         <a href="#servidor-app">Servidor de Aplicações</a>
         <a href="#banco-de-dados">Banco de Dados</a>
         <a href="#tcc">TCC - Monitoramento de Redes</a>
+        <a href="#blog">Blog do Vinicius Junior</a> <!-- Link para o blog -->
     </nav>
 
     <article id="maquinas-virtuais">
@@ -92,6 +101,18 @@
         <h2>TCC - Monitoramento de Redes</h2>
         <p>O projeto de <strong>Monitoramento de Redes</strong> usa o Prometheus e o Grafana para coletar e visualizar dados sobre o desempenho de uma rede. A parte lógica do sistema foca na configuração do Prometheus para monitorar métricas como largura de banda e latência, e o Grafana para criar dashboards visuais.</p>
         <img src="https://static-00.iconduck.com/assets.00/prometheus-icon-511x512-1vmxbcxr.png" alt="Monitoramento de Redes com Prometheus e Grafana">
+    </article>
+
+    <article id="blog">
+        <h2>Blog do Vinicius Junior</h2>
+        <div class="blog-post">
+            <h3>Postagem 1: A Revolução das Máquinas Virtuais</h3>
+            <p>As máquinas virtuais mudaram a forma como gerenciamos servidores e aplicações. Neste post, vou discutir como as VMs permitem que pequenas empresas escalem seus serviços de forma acessível.</p>
+        </div>
+        <div class="blog-post">
+            <h3>Postagem 2: Redes Virtuais - O Futuro da Conectividade</h3>
+            <p>As redes virtuais estão se tornando cada vez mais essenciais para a segurança e eficiência dos dados. Aqui, vou compartilhar insights sobre como implementar redes virtuais na Azure.</p>
+        </div>
     </article>
 
     <footer>
